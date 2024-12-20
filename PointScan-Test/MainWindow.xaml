@@ -130,7 +130,7 @@
                                 FontSize="12"
                                 ValueFormat="N2"
                                 Value="{Binding ElementName=BrightnessSlider, Path=Value, StringFormat=N1, Delay=300}" />-->
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=BrightnessSlider, Path=Value}" />
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=BrightnessSlider, Path=Value,StringFormat={}{0:F2}}" />
                             <Slider
                                 x:Name="BrightnessSlider"
                                 Margin="-5,0,10,0"
@@ -138,6 +138,7 @@
                                 IsSnapToTickEnabled="True"
                                 Maximum="1"
                                 Minimum="-1"
+                                SmallChange="0.1"
                                 TickFrequency="0.1"
                                 Value="{Binding Display.Brightness, Mode=TwoWay, Delay=100}" />
                         </DockPanel>
@@ -154,7 +155,7 @@
                                 ValueFormat="N2"
                                 Value="{Binding ElementName=ContrastSlider, Path=Value, Delay=300}" />-->
 
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=ContrastSlider, Path=Value}" />
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=ContrastSlider, Path=Value,StringFormat={}{0:F2}}" />
                             <Slider
                                 x:Name="ContrastSlider"
                                 Margin="-5,0,10,0"
@@ -162,6 +163,7 @@
                                 IsSnapToTickEnabled="True"
                                 Maximum="10"
                                 Minimum="0.1"
+                                SmallChange="0.1"
                                 TickFrequency="0.1"
                                 Value="{Binding Display.Contrast, Mode=TwoWay, Delay=100}" />
                         </DockPanel>
@@ -179,7 +181,7 @@
                                 ValueFormat="N2"
                                 Value="{Binding ElementName=GammaSlider, Path=Value, Delay=300}" />-->
 
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=GammaSlider, Path=Value}" />
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=GammaSlider, Path=Value,StringFormat={}{0:F2}}" />
                             <Slider
                                 x:Name="GammaSlider"
                                 Margin="-5,0,10,0"
@@ -187,6 +189,7 @@
                                 IsSnapToTickEnabled="True"
                                 Maximum="1"
                                 Minimum="-1"
+                                SmallChange="0.1"
                                 TickFrequency="0.01"
                                 Value="{Binding Display.Gamma, Mode=TwoWay, Delay=100}" />
                         </DockPanel>

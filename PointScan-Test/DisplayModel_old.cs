@@ -81,8 +81,8 @@ public partial class DisplayModel_old : ObservableObject
                 return;
         }
 
-        Mat minMat = new(Original.Size(), MatType.CV_64F, new Scalar(Min));
-        Mat maxMat = new(Original.Size(), MatType.CV_64F, new Scalar(Max));
+        Mat minMat = new(Original.Size(), Original.Type(), new Scalar(Min));
+        Mat maxMat = new(Original.Size(), Original.Type(), new Scalar(Max));
         U8 = ((Original - minMat) / (maxMat - minMat) * 255).ToMat().To8UC1();
         //U8 = ((Original.RangeIn(Min, Max) - Min) / (Max - Min) * 255).ToMat().To8UC1();
 

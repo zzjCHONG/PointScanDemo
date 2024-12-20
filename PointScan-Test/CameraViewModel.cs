@@ -145,7 +145,6 @@ namespace PointScan_Test
                         }
                         finally
                         {
-                            mat?.Dispose();
                             GC.Collect();
                         }
                     }

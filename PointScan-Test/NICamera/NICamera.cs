@@ -134,7 +134,6 @@ namespace PointScan_Test
 
         public List<string>? _devices;
         private readonly NIControl _NIControl;
-        private readonly MatType _matType = MatType.CV_8UC1;//CV_16SC1
         private Mat? CurrentFrameforSaving { get; set; }
 
         public NICamera()

@@ -3,6 +3,8 @@ using NationalInstruments.DAQmx;
 using OpenCvSharp;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Windows.Markup;
+using System.Windows.Media.Media3D;
 
 namespace PointScan_Test
 {
@@ -373,7 +375,7 @@ namespace PointScan_Test
 
         public bool ImageDataOutput(out List<Mat> mats)
         {
-            mats = [];
+            mats = new();
             try
             {
                 if (!GetImageOriginData(out List<double[]> imageDataList)) return false;
@@ -443,18 +445,24 @@ namespace PointScan_Test
         /// <returns></returns>
         private bool ConverterImageData(double[] imageData, out Mat mat)
         {
-            int x = XPts - XMargin;
-            int y = YPts - YMargin;
-            mat = new(x, y, MatType.CV_16SC1);
-            short[] resultArray = new short[x * y];
+            int width = XPts - XMargin;
+            int height = YPts - YMargin;
+            mat = new(height, width, MatType.CV_32FC1);//CV_16SC1，CV_32FC1、CV_8UC1,其餘數據為0.待優化
+            float[] outputData = new float[width * height];//short、float、byte
             try
             {
-                for (int i = 0; i < y; i++)
+                if (imageData.Length < width * height)
                 {
-                    for (int j = 0; j < x; j++)
+                    Debug.WriteLine("Invalid image data size.");
+                    return false;
+                }
+
+                for (int i = 0; i < height; i++)
+                {
+                    for (int j = 0; j < width; j++)
                     {
                         //1、计算待填入的新数组的序号
-                        int arrayIndex = i * (XPts - XMargin) + j;
+                        int arrayIndex = i * width + j;
 
                         //2、计算待填入的图像信息数组的序号
                         int imageIndex = 0;
@@ -467,9 +475,9 @@ namespace PointScan_Test
                             }
                             else
                             {
-                                //奇数行，前边若干位舍弃，后边数逐一向前补齐，因增加了X的偏移，有效图像数量能够对应
-                                //imageIndex = i *  XPts + ( XPts - j - 1 -  XMargin);//不做任何处理对应的奇数行图像序号，重影
-                                imageIndex = i * XPts + (XPts - j - 1 - XMargin) + XOffsetforTriangle;
+                                //奇数行，前边若干位舍弃，后边数逐一向前补齐，因增加了X的偏移，有效图像数量能够对应。
+                                //若XOffsetforTriangle为0，奇数行图像和偶数行交叉，显示重影
+                                imageIndex = i * XPts + (width - j - 1 ) + XOffsetforTriangle;
                             }
                         }
                         else//锯齿波
@@ -477,26 +485,22 @@ namespace PointScan_Test
                             imageIndex = i * XPts + j + XMargin;
                         }
 
-                        ////图像归一化,填入对应数组
-                        //double data = (imageData[imageIndex] - imageData.Min()) / (imageData.Max() - imageData.Min()) * short.MaxValue;
-                        //if (double.IsNaN(data)) data = 0;
-                        //resultArray[arrayIndex] = (short)data;
-
-                        //直接填入数组，不进行归一化
-                        double data = imageData[arrayIndex];
+                        //3、数据填充
+                        double data = imageData[imageIndex];
                         if (double.IsNaN(data)) data = 0;
-                        resultArray[arrayIndex] = (short)imageData[imageIndex];
+
+                        outputData[arrayIndex] = (float)data;//short、float、byte
                     }
                 }
-                Marshal.Copy(resultArray, 0, mat.Data, x * y);
+               
+                Marshal.Copy(outputData, 0, mat.Data, width * height);
+                return true;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("ConverterImageData" + ex.Message);
                 return false;
-            }
-
-            return true;
+            }       
         }
 
         /// <summary>
