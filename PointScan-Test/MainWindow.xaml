@@ -196,7 +196,7 @@
                         <ComboBox ItemsSource="{x:Static local:DisplayMatExtension_old.Colors}" SelectedIndex="{Binding Display.ColorMode}" />
                     </GroupBox>
 
-                    <Button Content="恢復默認"  Command="{Binding Display.SetAsDefaultCommand}"/>
+                    <Button Command="{Binding Display.SetAsDefaultCommand}" Content="恢復默認" />
 
                 </StackPanel>
             </Border>

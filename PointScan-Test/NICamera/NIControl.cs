@@ -1,6 +1,8 @@
 ﻿using NationalInstruments;
 using NationalInstruments.DAQmx;
+using OpenCvSharp;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace PointScan_Test
 {
@@ -369,21 +371,20 @@ namespace PointScan_Test
             return true;
         }
 
-        public bool ImageDataOutput(out int x, out int y, out List<byte[]> resultArrayList)
+        public bool ImageDataOutput(out List<Mat> mats)
         {
-            x = 0;
-            y = 0;
-            resultArrayList = new List<byte[]>();
+            mats = [];
             try
             {
-                 
                 if (!GetImageOriginData(out List<double[]> imageDataList)) return false;
 
                 for (int i = 0; i < imageDataList.Count; i++)
                 {
-                    if (!ConverterImageData(imageDataList[i], out x, out y, out byte[] resultArray)) return false;
-                    resultArrayList.Add(resultArray);
+                    if (!ConverterImageData(imageDataList[i], out Mat matImage)) return false;
+
+                    mats.Add(matImage);
                 }
+
                 return true;
             }
             catch (Exception ex)
@@ -440,14 +441,12 @@ namespace PointScan_Test
         /// <param name="y"></param>
         /// <param name="resultArray"></param>
         /// <returns></returns>
-        private bool ConverterImageData(double[] imageData, out int x, out int y, out byte[] resultArray)
+        private bool ConverterImageData(double[] imageData, out Mat mat)
         {
-            double max = imageData.Max();
-            double min = imageData.Min();
-            double denominator = max - min;
-            x =  XPts -  XMargin;
-            y =  YPts -  YMargin;
-            resultArray = new byte[x * y];
+            int x = XPts - XMargin;
+            int y = YPts - YMargin;
+            mat = new(x, y, MatType.CV_16SC1);
+            short[] resultArray = new short[x * y];
             try
             {
                 for (int i = 0; i < y; i++)
@@ -455,52 +454,41 @@ namespace PointScan_Test
                     for (int j = 0; j < x; j++)
                     {
                         //1、计算待填入的新数组的序号
-                        int arrayIndex = i * ( XPts -  XMargin) + j;
+                        int arrayIndex = i * (XPts - XMargin) + j;
 
                         //2、计算待填入的图像信息数组的序号
                         int imageIndex = 0;
-                        if (Convert.ToBoolean( WaveModel))//三角波
+                        if (Convert.ToBoolean(WaveModel))//三角波
                         {
                             if (i % 2 == 0)
                             {
                                 //偶数行
-                                imageIndex = i *  XPts + j +  XMargin;
+                                imageIndex = i * XPts + j + XMargin;
                             }
                             else
                             {
                                 //奇数行，前边若干位舍弃，后边数逐一向前补齐，因增加了X的偏移，有效图像数量能够对应
                                 //imageIndex = i *  XPts + ( XPts - j - 1 -  XMargin);//不做任何处理对应的奇数行图像序号，重影
-                                imageIndex = i *  XPts + ( XPts - j - 1 -  XMargin) +  XOffsetforTriangle;
+                                imageIndex = i * XPts + (XPts - j - 1 - XMargin) + XOffsetforTriangle;
                             }
                         }
                         else//锯齿波
                         {
-                            imageIndex = i *  XPts + j +  XMargin;
+                            imageIndex = i * XPts + j + XMargin;
                         }
 
-                        //16sc1
-                        ////3、图像归一化
-                        //double data = (imageData[imageIndex] - min) / denominator * short.MaxValue;
+                        ////图像归一化,填入对应数组
+                        //double data = (imageData[imageIndex] - imageData.Min()) / (imageData.Max() - imageData.Min()) * short.MaxValue;
                         //if (double.IsNaN(data)) data = 0;
-                        ////4、填入对应数组
                         //resultArray[arrayIndex] = (short)data;
 
-                        //8uc1
-                        // 3、直接填充数据，不做归一化
-                        double data = imageData[imageIndex];
-                        // 如果是无效数据，设置为 0
-                        if (double.IsNaN(data) || data < 0)
-                        {
-                            data = 0;
-                        }
-                        else if (data > 255)
-                        {
-                            data = 255;  // 确保值不超过 255，适用于 8 位无符号图像
-                        }
-                        // 4、填入对应数组，转换为 byte 类型
-                        resultArray[arrayIndex] = (byte)data;
+                        //直接填入数组，不进行归一化
+                        double data = imageData[arrayIndex];
+                        if (double.IsNaN(data)) data = 0;
+                        resultArray[arrayIndex] = (short)imageData[imageIndex];
                     }
                 }
+                Marshal.Copy(resultArray, 0, mat.Data, x * y);
             }
             catch (Exception ex)
             {

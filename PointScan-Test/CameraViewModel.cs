@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using OpenCvSharp;
-using OpenCvSharp.WpfExtensions;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
@@ -85,6 +84,9 @@ namespace PointScan_Test
 
         [ObservableProperty]
         private BitmapFrame? _bitmapSource;
+
+        [ObservableProperty]
+        private DisplayModel_old _display = new();
 
         [RelayCommand]
         void Init()
@@ -198,8 +200,5 @@ namespace PointScan_Test
             }
 
         }
-
-        [ObservableProperty]
-        private DisplayModel_old _display = new();
     }
 }

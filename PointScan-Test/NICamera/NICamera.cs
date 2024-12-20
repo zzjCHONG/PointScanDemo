@@ -148,22 +148,17 @@ namespace PointScan_Test
         public bool Capture(out Mat mat)
         {
             mat = new Mat();
-            List<Mat> mats = new();
             try
             {
                 if (!_NIControl.StartTask(1)) return false;
                 if (!_NIControl.StartTask(0)) return false;
                 if (!_NIControl.WaitUntilDone(0, 0)) return false;
                 if (!_NIControl.WaitUntilDone(1, 0)) return false;
-                if (_NIControl.ImageDataOutput(out int x, out int y, out List<byte[]> resultArrayList))
-                {
-                    for (int i = 0; i < resultArrayList.Count; i++)
-                    {
-                        Mat matImage = new(x, y, _matType);
-                        Marshal.Copy(resultArrayList[i], 0, matImage.Data, x * y);
-                        mats.Add(matImage);
-                    }
-                    if (mats.Count > 0) mat = mats[0];//取第一位置的图像
+                if (_NIControl.ImageDataOutput(out List<Mat> mats))
+                {     
+                    if (mats.Count > 0) 
+                        mat = mats[0];//取第一位置的图像
+
                     CurrentFrameforSaving = mat.Clone();
                 }
 
